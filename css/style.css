@@ -5,25 +5,33 @@
 }
 
 @font-face {
-  font-family: 'Kalim';
+  font-family: 'Kalam';
   src: url(../fonts/Kalam-Regular.ttf);
 }
 
 @font-face {
-  font-family: 'Kalim';
+  font-family: 'Kalam';
   src: url(../fonts/Kalam-Bold.ttf);
   font-weight: bold;
 }
 
 :root {
   --board-size: 0.85;
+  /* --blue: mediumblue; */
+  /* --red: crimson; */
+
+  /* --blue: rgb(0,122,255); */
+  /* --red: rgb(255,59,48); */
+
+  --blue: rgb(0,64,221);
+  --red: rgb(215,0,21);
 }
 
 body {
-  font-family: 'Kalim', sans-serif;
+  font-family: 'Kalam', sans-serif;
   transition: opacity 2s ease;
   margin: 0;
-  opacity: 1;
+  opacity: 0;
 }
 
 body:hover {
@@ -62,11 +70,11 @@ h1 {
 } 
 
 h1 span:nth-child(odd) {
-  color: blue;
+  color: var(--blue);
 }
 
 h1 span:nth-child(even) {
-  color: red;
+  color: var(--red);
 }
 
 .level {
@@ -76,7 +84,7 @@ h1 span:nth-child(even) {
   justify-content: space-between;
   margin: auto;
   margin-bottom: 30px;
-  color: blue;
+  color: var(--blue);
 }
 
 .star {
@@ -116,9 +124,10 @@ h1 span:nth-child(even) {
   justify-content: center;
   align-content: center;
   /* line-height: 80%; */
-  color: black;
+  color: white;
   font-size: 25vmin;
   background-color: white;
+  cursor: pointer;
   width: calc(var(--board-size) / 3 - 2px);
   height: calc(var(--board-size) / 3 - 2px);
 }
@@ -129,17 +138,17 @@ h1 span:nth-child(even) {
 
 /* .cell:nth-child(1),:nth-child(5),:nth-child(9) {
  font-weight: bold;
-} */
+}
 
-/* .cell:nth-child(1),:nth-child(5),:nth-child(6),:nth-child(8),:nth-child(9) {
-  color: red; 
+.cell:nth-child(1),:nth-child(5),:nth-child(6),:nth-child(8),:nth-child(9) {
+  color: var(--red); 
 }
 
 .cell:nth-child(2),:nth-child(3),:nth-child(4),:nth-child(7) {
-  color: blue; 
+  color: var(--blue); 
 } */
 
-.cell:nth-child(3),:nth-child(5),:nth-child(7) {
+ /* .cell:nth-child(3),:nth-child(5),:nth-child(7) {
   font-weight: bold;
  }
 
@@ -148,7 +157,19 @@ h1 span:nth-child(even) {
 }
 
 .cell:nth-child(3),:nth-child(5),:nth-child(6),:nth-child(7) {
-  color: blue; 
+  color: royalblue; 
+} */
+
+.nought {
+  color: var(--red);
+  cursor: default;
+  transition: color 0.2s ease;
+}
+
+.cross {
+  color: var(--blue);
+  cursor: default;
+  transition: color 0.2s ease;
 }
 
 @media (orientation: landscape) and (max-height: 460px) {
@@ -159,6 +180,17 @@ h1 span:nth-child(even) {
 
   .board {
       margin-top: 0;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+
+  body {
+      background-color: black;
+  }
+
+  .cell {
+      background-color: black;
   }
 }
 
@@ -176,7 +208,7 @@ h1 span:nth-child(even) {
   }
 
   h1 {
-      font-size: 130px;
+      font-size: 125px;
   }
 
   .level {
