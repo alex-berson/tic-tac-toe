@@ -1,5 +1,6 @@
 let board = [];
-let player = 'o';
+let player = 'x';
+let level = 2;
 
 const showBoard = () => document.body.style.opacity = 1;
 
@@ -8,9 +9,9 @@ const touchScreen = () => matchMedia('(hover: none)').matches;
 const initBoard = () => {
 
     board = [
-        [0,0,0],
-        [0,0,0],
-        [0,0,0]
+        ['','',''],
+        ['','',''],
+        ['','','']
     ];
 }
 
@@ -44,7 +45,26 @@ const humanTurn = (e) => {
     player == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
 
     cell.firstChild.innerText = player.toUpperCase();
-    // cell.firstChild.classList.add('display');
+
+    for (let [i, c] of cells.entries()) {
+        if (cell == c) board[Math.floor(i / 8)][i % 8] = player;
+    }
+}
+
+const selectLevel = (e) => {
+
+    let star = e.currentTarget;
+    let stars = document.querySelectorAll('.star');
+    let filled = true;
+
+    for (let [i, s] of stars.entries()) {
+
+        filled ? s.innerText = '★' :  s.innerText = '☆';
+        if (star == s && filled) {
+            level = i + 1;
+            filled = false;
+        }
+    }
 }
 
 const disableTapZoom = () => {
@@ -79,6 +99,18 @@ const disableTouch = () => {
     }
 }
 
+const enableLevels = () => {
+
+    let stars = document.querySelectorAll('.star');
+
+    for (let star of stars) {
+        if (touchScreen()) {
+            star.addEventListener("touchstart", selectLevel);
+        } else {
+            star.addEventListener("mousedown", selectLevel);
+        }
+    }
+}
 
 const init = () => {
 
@@ -88,6 +120,7 @@ const init = () => {
     showBoard();
     disableTapZoom();
     enableTouch();
+    enableLevels();
 }
 
 window.onload = () => document.fonts.ready.then(init());
