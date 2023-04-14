@@ -1,19 +1,17 @@
 let board = [];
-let player = 'x';
 let level = 2;
+let player = 'x';
+let currentPlayer = player;
 
 const showBoard = () => document.body.style.opacity = 1;
 
 const touchScreen = () => matchMedia('(hover: none)').matches;
 
-const initBoard = () => {
+const initBoard = () => board = [['','',''],['','',''],['','','']];
 
-    board = [
-        ['','',''],
-        ['','',''],
-        ['','','']
-    ];
-}
+const placeMark = (board, row, col, mark) => board[row][col] = mark; 
+
+const terminalNode = (board) => win(board, 'x') || win(board, 'o') || boardFull(board);
 
 const fillBoard = () => {
 
@@ -25,52 +23,157 @@ const fillBoard = () => {
 const setBoardSize = () => {
 
     let boardSize;
+    let minSide = screen.height > screen.width ? screen.width : window.innerHeight;
 
-    if (screen.height > screen.width) {
-        boardSize = Math.ceil(screen.width * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size')) / 3) * 3;
-    } else {
-        boardSize = Math.ceil(window.innerHeight * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size')) / 3) * 3;
-    }
+    boardSize = Math.ceil(minSide * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size')) / 3) * 3;
 
     document.documentElement.style.setProperty('--board-size', boardSize + 'px');
+}
+
+const shuffle = (array) => {
+    
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]] 
+    }
+
+    return array;
+}
+
+const boardFull = (board) => {
+
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+           if (board[i][j] == '') return false;
+        }
+    }
+
+    return true;
+}
+
+const freeCells = (board) => {
+
+    let n = 0
+    
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (board[i][j] == '') n++;
+        }
+    }
+
+    return n;
+}
+
+const win = (board, mark) => {
+
+    let threes = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+    outer: for (let three of threes) {
+
+        for (let cell of three) {
+
+            let row = Math.trunc(cell / 3);
+            let col = cell % 3;
+
+            if (board[row][col] != mark) continue outer;
+        }
+
+        return three;
+    }
+
+    return false;
+}
+
+const winner = (board, mark) => {
+
+    let cellsEl = document.querySelectorAll('.cell');
+    let cells = win(board, mark);
+
+    if (!cells) return false;
+
+    for (let cell of cells) {
+        cellsEl[cell].classList.add('bold');    
+    }
+
+    return true;
+}
+
+const validMoves = (board) => {
+
+    let moves = [];
+
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+           if (board[i][j] == '') moves.push([i,j]);
+        }
+    }
+
+    return shuffle(moves);
+}
+
+const randomAI = (board) => {
+
+    let moves = validMoves(board);
+
+    console.log(moves);
+
+    return moves[Math.floor(Math.random() * moves.length)];
+}
+
+const aiMove = () => {
+
+    let move = randomAI(board);
+    let ai = player == 'x' ? 'o' : 'x'
+    let cells = document.querySelectorAll('.cell');
+    let cell = cells[[move[0] * 3 + move[1]]];
+
+    ai == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
+
+    cell.firstChild.innerText = ai.toUpperCase();
+
+    placeMark(board, move[0], move[1], ai);
+
+    if (winner(board, ai) || boardFull(board)) return;
+
+    enableTouch();
 }
 
 const humanTurn = (e) => {
 
     let cell = e.currentTarget
     let cells = document.querySelectorAll('.cell');
+    let i = [...cells].indexOf(cell);
 
     if (cell.firstChild.innerText != '') return;
+
+    disableTouch();
 
     player == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
 
     cell.firstChild.innerText = player.toUpperCase();
 
-    for (let [i, c] of cells.entries()) {
-        if (cell == c) board[Math.floor(i / 8)][i % 8] = player;
-    }
+    placeMark(board, Math.trunc(i / 3), i % 3, player);
+
+    if (winner(board, player) || boardFull(board)) return;
+
+    setTimeout(aiMove, 500);
 }
 
 const selectLevel = (e) => {
 
     let star = e.currentTarget;
-    let stars = document.querySelectorAll('.star');
-    let filled = true;
+    let levels = document.querySelectorAll('.star');
+    level = [...levels].indexOf(star) + 1;
 
-    for (let [i, s] of stars.entries()) {
-
-        filled ? s.innerText = '★' :  s.innerText = '☆';
-        if (star == s && filled) {
-            level = i + 1;
-            filled = false;
-        }
-    }
+    levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
 }
 
 const disableTapZoom = () => {
+
     const preventDefault = (e) => e.preventDefault();
-    document.body.addEventListener('touchstart', preventDefault, {passive: false});
-    document.body.addEventListener('mousedown', preventDefault, {passive: false});
+    const event = touchScreen() ? "touchstart" : "mousedown";
+
+    document.body.addEventListener(event, preventDefault, {passive: false});
 }
 
 const enableTouch = () => {
@@ -78,11 +181,10 @@ const enableTouch = () => {
     let cells = document.querySelectorAll('.cell');
 
     for (let cell of cells) {
-        if (touchScreen()) {
-            cell.addEventListener("touchstart", humanTurn);
-        } else {
-            cell.addEventListener("mousedown", humanTurn);
-        }
+
+        let event = touchScreen() ? "touchstart" : "mousedown";
+
+        cell.addEventListener(event, humanTurn);
     }
 }
 
@@ -91,11 +193,10 @@ const disableTouch = () => {
     let cells = document.querySelectorAll('.cell');
 
     for (let cell of cells) {
-        if (touchScreen()) {
-            cell.removeEventListener("touchstart", humanTurn);
-        } else {
-            cell.removeEventListener("mousedown", humanTurn);
-        }
+
+        let event = touchScreen() ? "touchstart" : "mousedown";
+
+        cell.removeEventListener(event, humanTurn);
     }
 }
 
@@ -104,11 +205,10 @@ const enableLevels = () => {
     let stars = document.querySelectorAll('.star');
 
     for (let star of stars) {
-        if (touchScreen()) {
-            star.addEventListener("touchstart", selectLevel);
-        } else {
-            star.addEventListener("mousedown", selectLevel);
-        }
+
+        let event = touchScreen() ? "touchstart" : "mousedown";
+
+        star.addEventListener(event, selectLevel);
     }
 }
 
