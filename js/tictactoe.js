@@ -31,7 +31,7 @@ const setBoardSize = () => {
 }
 
 const shuffle = (array) => {
-    
+
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]] 
@@ -51,7 +51,7 @@ const boardFull = (board) => {
     return true;
 }
 
-const freeCells = (board) => {
+const freeCellsNum = (board) => {
 
     let n = 0
     
@@ -84,18 +84,39 @@ const win = (board, mark) => {
     return false;
 }
 
-const winner = (board, mark) => {
+const resetGame = () => {
 
-    let cellsEl = document.querySelectorAll('.cell');
+    console.log('RESET');
+}
+
+const gameEnd = (board, mark) => {
+
     let cells = win(board, mark);
 
-    if (!cells) return false;
+    if (cells) {
 
-    for (let cell of cells) {
-        cellsEl[cell].classList.add('bold');    
+        let cellsEl = document.querySelectorAll('.cell');
+        let delay = mark == player ? 0 : 50;
+        let image = mark == 'x' ? `images/marks/x-bold.svg` : `images/marks/o-bold.svg`;
+
+        setTimeout(() => {
+            for (let cell of cells) {
+                // cellsEl[cell].classList.add('bold');  
+                cellsEl[cell].firstChild.src = image;
+            }
+        }, delay);
     }
 
-    return true;
+    if (cells || boardFull(board)) {
+
+        let event = touchScreen() ? "touchstart" : "mousedown";
+
+        setTimeout(() => {
+            document.querySelector('.board').addEventListener(event, resetGame);
+        }, 100);
+        
+        return true;
+    }
 }
 
 const validMoves = (board) => {
@@ -115,25 +136,60 @@ const randomAI = (board) => {
 
     let moves = validMoves(board);
 
-    console.log(moves);
-
     return moves[Math.floor(Math.random() * moves.length)];
+}
+
+const heuristicAI = (board, mark) => {
+
+    let threes = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let opponent = mark == 'x' ? 'o' : 'x';
+    let marks = [mark, opponent];
+
+    for (let mark of marks) {
+
+        outer: for (let three of threes) {
+
+            let nMarks = 0;
+            let empty = [];
+            let opponent = mark == 'x' ? 'o' : 'x';
+
+            for (let cell of three) {
+
+                let row = Math.trunc(cell / 3);
+                let col = cell % 3;
+
+                if (board[row][col] == opponent) continue outer;
+                if (board[row][col] == mark) nMarks++;
+                if (board[row][col] == '') empty = [row, col];
+            }
+            if (nMarks == 2) return empty;
+        }
+    }
+
+    return randomAI(board);
 }
 
 const aiMove = () => {
 
-    let move = randomAI(board);
-    let ai = player == 'x' ? 'o' : 'x'
+    let ai = player == 'x' ? 'o' : 'x';
+
+    // let move = randomAI(board);
+    let move = heuristicAI(board, ai);
+
     let cells = document.querySelectorAll('.cell');
     let cell = cells[[move[0] * 3 + move[1]]];
 
-    ai == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
+    // ai == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
+    // cell.firstChild.innerText = ai.toUpperCase();
 
-    cell.firstChild.innerText = ai.toUpperCase();
+    let image = ai == 'x' ? `images/marks/x.svg` : `images/marks/o.svg`;
+
+    cell.firstChild.src = image;
+    cell.firstChild.classList.add('filled');
 
     placeMark(board, move[0], move[1], ai);
 
-    if (winner(board, ai) || boardFull(board)) return;
+    if (gameEnd(board, ai)) return;
 
     enableTouch();
 }
@@ -144,17 +200,24 @@ const humanTurn = (e) => {
     let cells = document.querySelectorAll('.cell');
     let i = [...cells].indexOf(cell);
 
-    if (cell.firstChild.innerText != '') return;
+    // if (cell.firstChild.innerText != '') return;
+    if (cell.firstChild.classList.contains('filled')) return;
+
 
     disableTouch();
 
-    player == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
+    // player == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
+    // cell.firstChild.innerText = player.toUpperCase();
 
-    cell.firstChild.innerText = player.toUpperCase();
+
+    let image = player == 'x' ? `images/marks/x.svg` : `images/marks/o.svg`;
+
+    cell.firstChild.src = image;
+    cell.firstChild.classList.add('filled');
 
     placeMark(board, Math.trunc(i / 3), i % 3, player);
 
-    if (winner(board, player) || boardFull(board)) return;
+    if (gameEnd(board, player)) return;
 
     setTimeout(aiMove, 500);
 }

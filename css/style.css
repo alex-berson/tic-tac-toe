@@ -1,17 +1,11 @@
 @font-face {
   font-family: 'Sofia';
+  src: url(../fonts/SofiaSansExtraCondensed-Regular.ttf);
+}
+
+@font-face {
+  font-family: 'Sofia';
   src: url(../fonts/SofiaSansExtraCondensed-Bold.ttf);
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: 'Kalam';
-  src: url(../fonts/kalam-regular-webfont.woff);
-}
-
-@font-face {
-  font-family: 'Kalam';
-  src: url(../fonts/kalam-bold-webfont.woff);
   font-weight: bold;
 }
 
@@ -28,7 +22,7 @@
 }
 
 body {
-  font-family: 'Kalam', sans-serif;
+  font-family: 'Sofia', sans-serif;
   transition: opacity 2s ease;
   margin: 0;
   opacity: 0;
@@ -58,7 +52,6 @@ body:hover {
 }
 
 h1 {
-  font-family: 'Sofia', sans-serif;
   font-weight: bold;
   text-align: center;
   font-size: calc(var(--board-size) / 3.2);
@@ -110,7 +103,7 @@ h1 span:nth-child(even) {
   background-color: gray;
   width: calc(var(--board-size) - 2px);
   height: calc(var(--board-size) - 2px);
-  gap: 2px 2px;
+  gap: 2px;
   margin: auto;
 }
 
@@ -132,6 +125,18 @@ h1 span:nth-child(even) {
   margin-top: 20px;
 }
 
+img {
+  width: calc(var(--board-size) / 3 * 0.65);
+  height: calc(var(--board-size) / 3 * 0.65);
+  opacity: 0;
+}
+
+.filled {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+
+}
+
 .bold {
   font-weight: bold;
 }
@@ -144,6 +149,15 @@ h1 span:nth-child(even) {
 .cross {
   color: var(--blue);
   cursor: default;
+}
+
+#designed {
+  font-weight: bold;
+  text-align: center;
+  align-self: auto;
+  color: var(--blue);
+  font-size: 1.0em; 
+  margin-top: 1em;
 }
 
 @media (orientation: landscape) and (max-height: 460px) {
@@ -215,5 +229,15 @@ h1 span:nth-child(even) {
   
   .mark {
     margin-top: 20px;
+  }
+
+  img {
+    width: calc(var(--board-size-big) / 3 * 0.65);
+    height: calc(var(--board-size-big) / 3 * 0.65);
+  }
+
+  #designed {
+    font-size: 0.9em; 
+    margin-top: 1em;
   }
 }
