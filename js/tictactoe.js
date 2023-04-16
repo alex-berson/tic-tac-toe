@@ -1,7 +1,7 @@
 let board = [];
 let level = 2;
 let player = 'x';
-let currentPlayer = player;
+// let currentPlayer = player;
 
 const showBoard = () => document.body.style.opacity = 1;
 
@@ -11,7 +11,7 @@ const initBoard = () => board = [['','',''],['','',''],['','','']];
 
 const placeMark = (board, row, col, mark) => board[row][col] = mark; 
 
-const terminalNode = (board) => win(board, 'x') || win(board, 'o') || boardFull(board);
+// const terminalNode = (board) => win(board, 'x') || win(board, 'o') || boardFull(board);
 
 const fillBoard = () => {
 
@@ -28,6 +28,18 @@ const setBoardSize = () => {
     boardSize = Math.ceil(minSide * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size')) / 3) * 3;
 
     document.documentElement.style.setProperty('--board-size', boardSize + 'px');
+}
+
+const preloadImages = () => {
+
+    let marks = ['x','o','x-bold','o-bold'];
+
+    for (let mark of marks) {
+
+        let img = new Image();
+
+        img.src = `images/marks/${mark}.svg`;
+    }
 }
 
 const shuffle = (array) => {
@@ -51,7 +63,7 @@ const boardFull = (board) => {
     return true;
 }
 
-const freeCellsNum = (board) => {
+const nFreeCells = (board) => {
 
     let n = 0
     
@@ -112,7 +124,7 @@ const gameEnd = (board, mark) => {
         let event = touchScreen() ? "touchstart" : "mousedown";
 
         setTimeout(() => {
-            document.querySelector('.board').addEventListener(event, resetGame);
+            document.querySelector('.board').addEventListener(event, resetGame, {once: true});
         }, 100);
         
         return true;
@@ -141,12 +153,11 @@ const randomAI = (board) => {
 
 const heuristicAI = (board, mark) => {
 
-    let threes = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
     let opponent = mark == 'x' ? 'o' : 'x';
     let marks = [mark, opponent];
-
+    let threes = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+   
     for (let mark of marks) {
-
         outer: for (let three of threes) {
 
             let nMarks = 0;
@@ -158,10 +169,19 @@ const heuristicAI = (board, mark) => {
                 let row = Math.trunc(cell / 3);
                 let col = cell % 3;
 
-                if (board[row][col] == opponent) continue outer;
-                if (board[row][col] == mark) nMarks++;
-                if (board[row][col] == '') empty = [row, col];
+                switch(board[row][col]) {
+
+                    case opponent:
+                        continue outer;
+                    case mark:
+                        nMarks++;
+                        break;
+                    case '':
+                        empty = [row, col];
+                        break;
+                }
             }
+
             if (nMarks == 2) return empty;
         }
     }
@@ -169,12 +189,68 @@ const heuristicAI = (board, mark) => {
     return randomAI(board);
 }
 
+const minimax = (board, alpha, beta, maximizingPlayer) => {
+
+    let tempBoard, bestScore, bestMove;
+    let ai = player == 'x' ? 'o' : 'x';
+
+    if (win(board, player)) return [null, -100 * (nFreeCells(board) + 1)];
+    if (win(board, ai)) return [null, 100 * (nFreeCells(board) + 1)];
+    if (boardFull(board)) return [null, 0];
+
+    if (maximizingPlayer) {
+        
+        bestScore = -Infinity;
+        
+        for (let move of validMoves(board)) {
+
+            tempBoard = board.map(arr => arr.slice());
+    
+            placeMark(tempBoard, move[0], move[1], ai);
+    
+            [_, score] = minimax(tempBoard, alpha, beta, false);
+
+            if (score > bestScore) [bestScore, bestMove] = [score, move];
+
+            alpha = Math.max(alpha, score);
+
+            if (alpha >= beta) break;
+        }
+
+        return [bestMove, bestScore];
+
+    } else {
+
+        bestScore = Infinity;
+        
+        for (let move of validMoves(board)) {
+
+            tempBoard = board.map(arr => arr.slice());
+    
+            placeMark(tempBoard, move[0], move[1], player);
+
+            [_, score] = minimax(tempBoard, alpha, beta, true);
+    
+            if (score < bestScore) [bestScore, bestMove] = [score, move];
+
+            beta = Math.min(beta, score);
+
+            if (beta <= alpha) break;
+        }
+
+        return [bestMove, bestScore];
+    }
+}
+
 const aiMove = () => {
 
     let ai = player == 'x' ? 'o' : 'x';
 
     // let move = randomAI(board);
-    let move = heuristicAI(board, ai);
+    // let move = heuristicAI(board, ai);
+
+    let [move, _] = minimax(board, -Infinity, Infinity, true);
+
 
     let cells = document.querySelectorAll('.cell');
     let cell = cells[[move[0] * 3 + move[1]]];
@@ -212,6 +288,7 @@ const humanTurn = (e) => {
 
     let image = player == 'x' ? `images/marks/x.svg` : `images/marks/o.svg`;
 
+
     cell.firstChild.src = image;
     cell.firstChild.classList.add('filled');
 
@@ -219,7 +296,7 @@ const humanTurn = (e) => {
 
     if (gameEnd(board, player)) return;
 
-    setTimeout(aiMove, 500);
+    setTimeout(aiMove, 300);
 }
 
 const selectLevel = (e) => {
@@ -278,6 +355,7 @@ const enableLevels = () => {
 const init = () => {
 
     setBoardSize();
+    preloadImages();
     initBoard();
     fillBoard();
     showBoard();

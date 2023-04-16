@@ -1,11 +1,11 @@
-@font-face {
+/* @font-face {
   font-family: 'Sofia';
-  src: url(../fonts/SofiaSansExtraCondensed-Regular.ttf);
-}
+  src: url(../fonts/SofiaSansExtraCondensed-Regular.woff2);
+} */
 
 @font-face {
   font-family: 'Sofia';
-  src: url(../fonts/SofiaSansExtraCondensed-Bold.ttf);
+  src: url(../fonts/SofiaSansExtraCondensed-Bold.woff2);
   font-weight: bold;
 }
 
