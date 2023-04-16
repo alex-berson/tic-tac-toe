@@ -1,5 +1,5 @@
 let board = [];
-let level = 2;
+let level = 3;
 let player = 'x';
 // let currentPlayer = player;
 
@@ -244,13 +244,19 @@ const minimax = (board, alpha, beta, maximizingPlayer) => {
 
 const aiMove = () => {
 
+    let move = [];
     let ai = player == 'x' ? 'o' : 'x';
 
-    // let move = randomAI(board);
-    // let move = heuristicAI(board, ai);
-
-    let [move, _] = minimax(board, -Infinity, Infinity, true);
-
+    switch(level) {
+        case 1:
+            move = randomAI(board);
+            break;
+        case 2:
+            move = heuristicAI(board, ai);
+            break;
+        case 3:
+            [move, _] = minimax(board, -Infinity, Infinity, true);
+    }
 
     let cells = document.querySelectorAll('.cell');
     let cell = cells[[move[0] * 3 + move[1]]];
@@ -306,6 +312,16 @@ const selectLevel = (e) => {
     level = [...levels].indexOf(star) + 1;
 
     levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
+    localStorage.setItem('level-xo', JSON.stringify(level));
+}
+
+const loadLevel = () => {
+
+    let levels = document.querySelectorAll('.star');
+    let savedLevel = JSON.parse(localStorage.getItem('level-xo'));
+    level = savedLevel == null ? 2 : Number(savedLevel);
+
+    levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
 }
 
 const disableTapZoom = () => {
@@ -358,6 +374,7 @@ const init = () => {
     preloadImages();
     initBoard();
     fillBoard();
+    loadLevel();
     showBoard();
     disableTapZoom();
     enableTouch();
