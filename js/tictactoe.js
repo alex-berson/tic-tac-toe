@@ -1,7 +1,7 @@
 let board = [];
-let level = 3;
+let level;
 let player = 'x';
-// let currentPlayer = player;
+let firstMove = player;
 
 const showBoard = () => document.body.style.opacity = 1;
 
@@ -11,21 +11,11 @@ const initBoard = () => board = [['','',''],['','',''],['','','']];
 
 const placeMark = (board, row, col, mark) => board[row][col] = mark; 
 
-// const terminalNode = (board) => win(board, 'x') || win(board, 'o') || boardFull(board);
-
-const fillBoard = () => {
-
-    let cells = document.querySelectorAll('.cell');
-
-    cells.forEach(cell => cell.firstChild.innerText = '');
-}
-
 const setBoardSize = () => {
 
-    let boardSize;
     let minSide = screen.height > screen.width ? screen.width : window.innerHeight;
-
-    boardSize = Math.ceil(minSide * parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size')) / 3) * 3;
+    let cssBoardSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size'));
+    let boardSize = Math.ceil(minSide * cssBoardSize / 3) * 3;
 
     document.documentElement.style.setProperty('--board-size', boardSize + 'px');
 }
@@ -63,7 +53,7 @@ const boardFull = (board) => {
     return true;
 }
 
-const nFreeCells = (board) => {
+const nFreeSquares = (board) => {
 
     let n = 0
     
@@ -82,10 +72,10 @@ const win = (board, mark) => {
 
     outer: for (let three of threes) {
 
-        for (let cell of three) {
+        for (let square of three) {
 
-            let row = Math.trunc(cell / 3);
-            let col = cell % 3;
+            let row = Math.trunc(square / 3);
+            let col = square % 3;
 
             if (board[row][col] != mark) continue outer;
         }
@@ -96,35 +86,66 @@ const win = (board, mark) => {
     return false;
 }
 
-const resetGame = () => {
+const newGame = ({level = false} = {}) => {
 
-    console.log('RESET');
+    let n = 9 - nFreeSquares(board);
+    let marks =  document.querySelectorAll('img');
+
+    marks.forEach(mark => {
+
+        if (mark.getAttribute('src') != '') {
+
+            mark.classList.add('reset');
+            mark.classList.remove('filled');
+
+            mark.addEventListener('transitionend', e => {
+
+                n--;
+                
+                let mark = e.currentTarget;
+
+                mark.src = '';
+                mark.classList.remove('reset');
+        
+                if (n == 0) {
+
+                    firstMove = level ? player : firstMove == 'x' ? 'o' : 'x';
+
+                    initBoard();
+                    enableTouch();
+
+                    if (firstMove != player) setTimeout(aiMove, 300);
+                }
+        
+            }, {once: true})
+        }
+    });
 }
 
 const gameEnd = (board, mark) => {
 
-    let cells = win(board, mark);
+    let squares = win(board, mark);
 
-    if (cells) {
+    if (squares) {
 
-        let cellsEl = document.querySelectorAll('.cell');
+        let squaresEl = document.querySelectorAll('.square');
         let delay = mark == player ? 0 : 50;
-        let image = mark == 'x' ? `images/marks/x-bold.svg` : `images/marks/o-bold.svg`;
+        let image = mark == 'x' ? 'images/marks/x-bold.svg' : 'images/marks/o-bold.svg';
 
         setTimeout(() => {
-            for (let cell of cells) {
-                // cellsEl[cell].classList.add('bold');  
-                cellsEl[cell].firstChild.src = image;
+            for (let square of squares) {
+                // squaresEl[square].classList.add('bold');  
+                squaresEl[square].firstChild.src = image;
             }
         }, delay);
     }
 
-    if (cells || boardFull(board)) {
+    if (squares || boardFull(board)) {
 
         let event = touchScreen() ? "touchstart" : "mousedown";
 
         setTimeout(() => {
-            document.querySelector('.board').addEventListener(event, resetGame, {once: true});
+            document.querySelector('.board').addEventListener(event, newGame, {once: true});
         }, 100);
         
         return true;
@@ -164,10 +185,10 @@ const heuristicAI = (board, mark) => {
             let empty = [];
             let opponent = mark == 'x' ? 'o' : 'x';
 
-            for (let cell of three) {
+            for (let square of three) {
 
-                let row = Math.trunc(cell / 3);
-                let col = cell % 3;
+                let row = Math.trunc(square / 3);
+                let col = square % 3;
 
                 switch(board[row][col]) {
 
@@ -191,20 +212,20 @@ const heuristicAI = (board, mark) => {
 
 const minimax = (board, alpha, beta, maximizingPlayer) => {
 
-    let tempBoard, bestScore, bestMove;
+    let bestMove;
     let ai = player == 'x' ? 'o' : 'x';
 
-    if (win(board, player)) return [null, -100 * (nFreeCells(board) + 1)];
-    if (win(board, ai)) return [null, 100 * (nFreeCells(board) + 1)];
+    if (win(board, player)) return [null, -100 * (nFreeSquares(board) + 1)];
+    if (win(board, ai)) return [null, 100 * (nFreeSquares(board) + 1)];
     if (boardFull(board)) return [null, 0];
 
     if (maximizingPlayer) {
         
-        bestScore = -Infinity;
+        let bestScore = -Infinity;
         
         for (let move of validMoves(board)) {
 
-            tempBoard = board.map(arr => arr.slice());
+            let tempBoard = board.map(arr => arr.slice());
     
             placeMark(tempBoard, move[0], move[1], ai);
     
@@ -221,11 +242,11 @@ const minimax = (board, alpha, beta, maximizingPlayer) => {
 
     } else {
 
-        bestScore = Infinity;
+        let bestScore = Infinity;
         
         for (let move of validMoves(board)) {
 
-            tempBoard = board.map(arr => arr.slice());
+            let tempBoard = board.map(arr => arr.slice());
     
             placeMark(tempBoard, move[0], move[1], player);
 
@@ -244,10 +265,10 @@ const minimax = (board, alpha, beta, maximizingPlayer) => {
 
 const aiMove = () => {
 
-    let move = [];
+    let move;
     let ai = player == 'x' ? 'o' : 'x';
 
-    switch(level) {
+    switch (level) {
         case 1:
             move = randomAI(board);
             break;
@@ -258,16 +279,16 @@ const aiMove = () => {
             [move, _] = minimax(board, -Infinity, Infinity, true);
     }
 
-    let cells = document.querySelectorAll('.cell');
-    let cell = cells[[move[0] * 3 + move[1]]];
+    let squares = document.querySelectorAll('.square');
+    let square = squares[[move[0] * 3 + move[1]]];
 
-    // ai == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
-    // cell.firstChild.innerText = ai.toUpperCase();
+    // ai == 'x' ? square.classList.add('cross') : square.classList.add('nought');
+    // square.firstChild.innerText = ai.toUpperCase();
 
-    let image = ai == 'x' ? `images/marks/x.svg` : `images/marks/o.svg`;
+    let image = ai == 'x' ? 'images/marks/x.svg' : 'images/marks/o.svg';
 
-    cell.firstChild.src = image;
-    cell.firstChild.classList.add('filled');
+    square.firstChild.src = image;
+    square.firstChild.classList.add('filled');
 
     placeMark(board, move[0], move[1], ai);
 
@@ -278,25 +299,25 @@ const aiMove = () => {
 
 const humanTurn = (e) => {
 
-    let cell = e.currentTarget
-    let cells = document.querySelectorAll('.cell');
-    let i = [...cells].indexOf(cell);
+    let square = e.currentTarget
+    let squares = document.querySelectorAll('.square');
+    let i = [...squares].indexOf(square);
 
-    // if (cell.firstChild.innerText != '') return;
-    if (cell.firstChild.classList.contains('filled')) return;
+    // if (square.firstChild.innerText != '') return;
+    if (square.firstChild.classList.contains('filled')) return;
 
 
     disableTouch();
 
-    // player == 'x' ? cell.classList.add('cross') : cell.classList.add('nought');
-    // cell.firstChild.innerText = player.toUpperCase();
+    // player == 'x' ? square.classList.add('cross') : square.classList.add('nought');
+    // square.firstChild.innerText = player.toUpperCase();
 
 
-    let image = player == 'x' ? `images/marks/x.svg` : `images/marks/o.svg`;
+    let image = player == 'x' ? 'images/marks/x.svg' : 'images/marks/o.svg';
 
 
-    cell.firstChild.src = image;
-    cell.firstChild.classList.add('filled');
+    square.firstChild.src = image;
+    square.firstChild.classList.add('filled');
 
     placeMark(board, Math.trunc(i / 3), i % 3, player);
 
@@ -313,6 +334,8 @@ const selectLevel = (e) => {
 
     levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
     localStorage.setItem('level-xo', JSON.stringify(level));
+
+    newGame({level: true});
 }
 
 const loadLevel = () => {
@@ -334,25 +357,25 @@ const disableTapZoom = () => {
 
 const enableTouch = () => {
 
-    let cells = document.querySelectorAll('.cell');
+    let squares = document.querySelectorAll('.square');
 
-    for (let cell of cells) {
+    for (let square of squares) {
 
         let event = touchScreen() ? "touchstart" : "mousedown";
 
-        cell.addEventListener(event, humanTurn);
+        square.addEventListener(event, humanTurn);
     }
 }
 
 const disableTouch = () => {
 
-    let cells = document.querySelectorAll('.cell');
+    let squares = document.querySelectorAll('.square');
 
-    for (let cell of cells) {
+    for (let square of squares) {
 
         let event = touchScreen() ? "touchstart" : "mousedown";
 
-        cell.removeEventListener(event, humanTurn);
+        square.removeEventListener(event, humanTurn);
     }
 }
 
@@ -373,7 +396,6 @@ const init = () => {
     setBoardSize();
     preloadImages();
     initBoard();
-    fillBoard();
     loadLevel();
     showBoard();
     disableTapZoom();

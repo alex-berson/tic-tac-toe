@@ -42,7 +42,7 @@ body:hover {
 }
 
 #middle {
-  display: table-cell;
+  display: table-square;
   vertical-align: middle;
 }
 
@@ -107,7 +107,7 @@ h1 span:nth-child(even) {
   margin: auto;
 }
 
-.cell {
+.square {
   box-sizing: border-box;
   display: grid;
   justify-content: center;
@@ -134,7 +134,10 @@ img {
 .filled {
   opacity: 1;
   transition: opacity 0.2s ease;
+}
 
+.reset {
+  transition: opacity 0.5s ease-in-out;
 }
 
 .bold {
@@ -177,7 +180,7 @@ img {
       background-color: black;
   }
 
-  .cell {
+  .square {
       background-color: black;
   }
 }
@@ -221,7 +224,7 @@ img {
       height: calc(var(--board-size-big) - 2px);
   }
 
-  .cell {
+  .square {
       width: calc(var(--board-size-big) / 3 - 2px);
       height: calc(var(--board-size-big) / 3 - 2px);
       font-size: 100px;
