@@ -1,9 +1,8 @@
 let board = [];
-let level;
-let player = 'x';
+let level, player, xTimeout, oTimeout;
 let firstMove = player;
 
-const showBoard = () => document.body.style.opacity = 1;
+// const showBoard = () => document.body.style.opacity = 1;
 
 const touchScreen = () => matchMedia('(hover: none)').matches;
 
@@ -20,7 +19,7 @@ const setBoardSize = () => {
     document.documentElement.style.setProperty('--board-size', boardSize + 'px');
 }
 
-const preloadImages = () => {
+const loadImages = () => {
 
     let marks = ['x','o','x-bold','o-bold'];
 
@@ -86,14 +85,19 @@ const win = (board, mark) => {
     return false;
 }
 
-const newGame = ({level = false} = {}) => {
-
+const newGame = ({changeLevel = false} = {}) => {
+    
     let n = 9 - nFreeSquares(board);
-    let marks =  document.querySelectorAll('img');
+    let marks = document.querySelectorAll('img');
+    let event = touchScreen() ? 'touchstart' : 'mousedown';
+    firstMove = changeLevel ? player : firstMove == 'x' ? 'o' : 'x';
+    document.querySelector('.board').removeEventListener(event, newGame);
+
+    if (n == 0) enableTouch();
 
     marks.forEach(mark => {
 
-        if (mark.getAttribute('src') != '') {
+        if (mark.classList.contains('filled')) {
 
             mark.classList.add('reset');
             mark.classList.remove('filled');
@@ -105,15 +109,11 @@ const newGame = ({level = false} = {}) => {
                 let mark = e.currentTarget;
 
                 mark.src = '';
-                mark.classList.remove('reset');
+                mark.className = '';
         
                 if (n == 0) {
-
-                    firstMove = level ? player : firstMove == 'x' ? 'o' : 'x';
-
                     initBoard();
                     enableTouch();
-
                     if (firstMove != player) setTimeout(aiMove, 300);
                 }
         
@@ -142,10 +142,10 @@ const gameEnd = (board, mark) => {
 
     if (squares || boardFull(board)) {
 
-        let event = touchScreen() ? "touchstart" : "mousedown";
+        let event = touchScreen() ? 'touchstart' : 'mousedown';
 
         setTimeout(() => {
-            document.querySelector('.board').addEventListener(event, newGame, {once: true});
+            document.querySelector('.board').addEventListener(event, newGame);
         }, 100);
         
         return true;
@@ -302,9 +302,10 @@ const humanTurn = (e) => {
     let square = e.currentTarget
     let squares = document.querySelectorAll('.square');
     let i = [...squares].indexOf(square);
+    let imageEl = square.firstChild;
 
     // if (square.firstChild.innerText != '') return;
-    if (square.firstChild.classList.contains('filled')) return;
+    if (imageEl.classList.contains('filled')) return;
 
 
     disableTouch();
@@ -316,8 +317,8 @@ const humanTurn = (e) => {
     let image = player == 'x' ? 'images/marks/x.svg' : 'images/marks/o.svg';
 
 
-    square.firstChild.src = image;
-    square.firstChild.classList.add('filled');
+    imageEl.src = image;
+    imageEl.classList.add('filled');
 
     placeMark(board, Math.trunc(i / 3), i % 3, player);
 
@@ -335,7 +336,8 @@ const selectLevel = (e) => {
     levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
     localStorage.setItem('level-xo', JSON.stringify(level));
 
-    newGame({level: true});
+    disableTouch();
+    newGame({changeLevel: true});
 }
 
 const loadLevel = () => {
@@ -347,12 +349,132 @@ const loadLevel = () => {
     levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
 }
 
+const setHeaderColors = (mark) => {
+
+    if (mark == 'x') {
+        document.documentElement.style.setProperty('--color1', getComputedStyle(document.documentElement).getPropertyValue('--blue'));
+        document.documentElement.style.setProperty('--color2', getComputedStyle(document.documentElement).getPropertyValue('--red'));
+    } else {
+        document.documentElement.style.setProperty('--color1', getComputedStyle(document.documentElement).getPropertyValue('--red'));
+        document.documentElement.style.setProperty('--color2', getComputedStyle(document.documentElement).getPropertyValue('--blue'));
+    }
+}
+
+const showChoice = ({initial = false} = {}) => {
+
+    setTimeout(() => {
+        document.querySelector(".choice").style.opacity = 1;
+    }, 50);
+
+    if (!initial) {
+        setTimeout(showBoard, 1500); 
+        return;
+    };
+
+    xTimeout = setTimeout(() => {
+        document.querySelector(".x").classList.add("zoom");
+    }, 1000 + 50);
+
+    oTimeout = setTimeout(() => {
+        document.querySelector(".o").classList.add("zoom");
+    }, 1000 + 700 + 50);    
+}
+
+const markChoice = (e) => {
+
+    let el = e.currentTarget;
+    let mark = el.classList.contains('x') ? 'x' : 'o'
+    player = mark;
+
+    disableTouchChoice();
+    clearTimeout(xTimeout);
+    clearTimeout(oTimeout);
+
+    document.querySelector('.x').classList.remove("zoom");
+    document.querySelector('.o').classList.remove("zoom");
+
+    localStorage.setItem('mark', mark);
+    setHeaderColors(mark);
+    
+    setTimeout(() => {
+        el.classList.add("zoom");
+    }, 50);
+
+    showBoard(el);
+}
+
+const showBoard = (el = undefined) => {
+
+    setTimeout(() => {
+        document.querySelector(".choice").style.opacity = 0;
+    }, 500);
+
+    setTimeout(() => {
+
+        if (el) el.classList.remove("zoom");
+
+        document.querySelector(".choice").style.display = "none";
+        document.querySelector("h1").style.display = "block";
+        document.querySelector(".level").style.display = "flex";
+        document.querySelector(".board").style.display = "grid";
+        document.querySelector("#designed").style.display = "block";    
+
+        setTimeout(() => {
+            document.querySelector("h1").style.opacity = 1;
+            document.querySelector(".level").style.opacity = 1;
+            document.querySelector(".board").style.opacity = 1;
+            document.querySelector("#designed").style.opacity = 1;
+
+        }, 500);
+
+        setTimeout(() => {
+            enableTouch();
+            enableLevels();
+        }, 500 + 500);
+
+    }, 1000 + 500);
+}
+
+const setMarks = () => {
+
+    if (localStorage.mark) {
+        player = localStorage.getItem('mark');
+        setHeaderColors(player);
+        showChoice();
+        setTimeout(enableTouchChoice, 0);
+    } else {
+        showChoice({initial: true});
+        setTimeout(enableTouchChoice, 250);
+    }
+}
+
 const disableTapZoom = () => {
 
     const preventDefault = (e) => e.preventDefault();
-    const event = touchScreen() ? "touchstart" : "mousedown";
+    const event = touchScreen() ? 'touchstart' : 'mousedown';
 
     document.body.addEventListener(event, preventDefault, {passive: false});
+}
+
+const enableTouchChoice = () => {
+
+    document.querySelectorAll('.x, .o').forEach((mark) => {
+
+        let event = touchScreen() ? 'touchstart' : 'mousedown';
+
+        mark.addEventListener(event, markChoice);
+
+    });
+}
+
+const disableTouchChoice = () => {
+
+    document.querySelectorAll('.x, .o').forEach((mark) => {
+
+        let event = touchScreen() ? 'touchstart' : 'mousedown';
+
+        mark.removeEventListener(event, markChoice);
+    });
 }
 
 const enableTouch = () => {
@@ -361,7 +483,7 @@ const enableTouch = () => {
 
     for (let square of squares) {
 
-        let event = touchScreen() ? "touchstart" : "mousedown";
+        let event = touchScreen() ? 'touchstart' : 'mousedown';
 
         square.addEventListener(event, humanTurn);
     }
@@ -373,7 +495,7 @@ const disableTouch = () => {
 
     for (let square of squares) {
 
-        let event = touchScreen() ? "touchstart" : "mousedown";
+        let event = touchScreen() ? 'touchstart' : 'mousedown';
 
         square.removeEventListener(event, humanTurn);
     }
@@ -385,7 +507,7 @@ const enableLevels = () => {
 
     for (let star of stars) {
 
-        let event = touchScreen() ? "touchstart" : "mousedown";
+        let event = touchScreen() ? 'touchstart' : 'mousedown';
 
         star.addEventListener(event, selectLevel);
     }
@@ -394,13 +516,16 @@ const enableLevels = () => {
 const init = () => {
 
     setBoardSize();
-    preloadImages();
-    initBoard();
+    loadImages();
     loadLevel();
-    showBoard();
+
+    setMarks();
+
+    initBoard();
+    // showBoard();
     disableTapZoom();
-    enableTouch();
-    enableLevels();
+    // enableTouch();
+    // enableLevels();
 }
 
 window.onload = () => document.fonts.ready.then(init());
