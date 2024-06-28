@@ -1,8 +1,7 @@
 let board = [];
-let level, player, xTimeout, oTimeout;
-let firstMove = player;
+let level, player = 'x';
 
-// const showBoard = () => document.body.style.opacity = 1;
+const showBoard = () => document.body.style.opacity = 1;
 
 const touchScreen = () => matchMedia('(hover: none)').matches;
 
@@ -13,13 +12,13 @@ const placeMark = (board, row, col, mark) => board[row][col] = mark;
 const setBoardSize = () => {
 
     let minSide = screen.height > screen.width ? screen.width : window.innerHeight;
-    let cssBoardSize = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--board-size'));
+    let cssBoardSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--board-size')) / 100;
     let boardSize = Math.ceil(minSide * cssBoardSize / 3) * 3;
 
     document.documentElement.style.setProperty('--board-size', boardSize + 'px');
 }
 
-const loadImages = () => {
+const preloadImages = () => {
 
     let marks = ['x','o','x-bold','o-bold'];
 
@@ -34,7 +33,9 @@ const loadImages = () => {
 const shuffle = (array) => {
 
     for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+
+        let j = Math.trunc(Math.random() * (i + 1));
+
         [array[i], array[j]] = [array[j], array[i]] 
     }
 
@@ -69,52 +70,61 @@ const win = (board, mark) => {
 
     let threes = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
-    outer: for (let three of threes) {
+    outer: for (let squares of threes) {
 
-        for (let square of three) {
+        for (let square of squares) {
 
-            let row = Math.trunc(square / 3);
-            let col = square % 3;
+            let r = Math.trunc(square / 3);
+            let c = square % 3;
 
-            if (board[row][col] != mark) continue outer;
+            if (board[r][c] != mark) continue outer;
         }
 
-        return three;
+        return squares;
     }
 
     return false;
 }
 
-const newGame = ({changeLevel = false} = {}) => {
-    
-    let n = 9 - nFreeSquares(board);
-    let marks = document.querySelectorAll('img');
-    let event = touchScreen() ? 'touchstart' : 'mousedown';
-    firstMove = changeLevel ? player : firstMove == 'x' ? 'o' : 'x';
-    document.querySelector('.board').removeEventListener(event, newGame);
+const newGame = ({level = false} = {}) => {
 
-    if (n == 0) enableTouch();
+    let n = 9 - nFreeSquares(board) + Boolean(win(board)) * 3;
+    let images =  document.querySelectorAll('img');
 
-    marks.forEach(mark => {
+    document.querySelector('.board').removeEventListener('touchstart', newGame);
+    document.querySelector('.board').removeEventListener('mousedown', newGame);
 
-        if (mark.classList.contains('filled')) {
+    if (!level || win(board, 'x') ||  win(board, 'o')) player = player == 'x' ? 'o' : 'x';
 
-            mark.classList.add('reset');
-            mark.classList.remove('filled');
+    images.forEach(image => {
 
-            mark.addEventListener('transitionend', e => {
+        if (image.getAttribute('src') != '') {
+
+            image.classList.add('reset');
+            image.parentElement.parentElement.classList.remove('filled', 'win');
+
+            image.addEventListener('transitionend', e => {
 
                 n--;
                 
-                let mark = e.currentTarget;
+                let image = e.currentTarget;
 
-                mark.src = '';
-                mark.className = '';
+                image.src = '';
+                image.classList.remove('reset');
         
                 if (n == 0) {
+
+                    // firstMove = level ? player : firstMove == 'x' ? 'o' : 'x';
+
                     initBoard();
-                    enableTouch();
-                    if (firstMove != player) setTimeout(aiMove, 300);
+
+                    // if (firstMove != player) setTimeout(aiMove, 300);
+
+                    player == 'x' ? enableTouch() : setTimeout(aiMove, 300);
+
+
+                    // player = 'o'; //
+                    // setTimeout(aiMove, 300); //
                 }
         
             }, {once: true})
@@ -129,24 +139,34 @@ const gameEnd = (board, mark) => {
     if (squares) {
 
         let squaresEl = document.querySelectorAll('.square');
-        let delay = mark == player ? 0 : 50;
+        // let delay = mark == player ? 100 : 100;
         let image = mark == 'x' ? 'images/marks/x-bold.svg' : 'images/marks/o-bold.svg';
 
         setTimeout(() => {
             for (let square of squares) {
-                // squaresEl[square].classList.add('bold');  
-                squaresEl[square].firstChild.src = image;
+
+                let el = squaresEl[square];
+                let img = squaresEl[square].querySelector('.bold');
+
+                img.src = image;
+                el.classList.add('win');
+
+                img.addEventListener('transitionend', () => {
+
+                    img.parentElement.parentElement.classList.remove('filled');
+                    img.nextSibling.src = '';
+
+                }, {once: true});
             }
-        }, delay);
+        }, 100);
     }
 
     if (squares || boardFull(board)) {
 
-        let event = touchScreen() ? 'touchstart' : 'mousedown';
-
         setTimeout(() => {
-            document.querySelector('.board').addEventListener(event, newGame);
-        }, 100);
+            document.querySelector('.board').addEventListener('touchstart', newGame);
+            document.querySelector('.board').addEventListener('mousedown', newGame);
+        }, 200);
         
         return true;
     }
@@ -172,7 +192,7 @@ const randomAI = (board) => {
     return moves[Math.floor(Math.random() * moves.length)];
 }
 
-const heuristicAI = (board, mark) => {
+const basicAI = (board, mark) => {
 
     let opponent = mark == 'x' ? 'o' : 'x';
     let marks = [mark, opponent];
@@ -208,6 +228,85 @@ const heuristicAI = (board, mark) => {
     }
 
     return randomAI(board);
+}
+
+const advancedAI = (board, mark) => {
+
+    countMarks = (three) => {
+
+        let counts = {'ai': 0, 'player': 0, 'empty': 0};
+    
+        three.forEach(square => {
+
+            switch (board[Math.trunc(square / 3)][square % 3]) {
+
+                case ai:
+                    counts['ai']++;
+                    break;
+                case player:
+                    counts['player']++;
+                    break;
+                case '':
+                    counts['empty']++;
+                    break;
+            }
+        });
+    
+        return counts;
+    }
+
+    let ai = mark;
+    let player = mark == 'x' ? 'o' : 'x';
+    let threes = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    let squares =  Array(9).fill(0);
+
+    for(let r = 0; r < 3; r++) { 
+        
+        for(let c = 0; c < 3; c++) {
+
+            if (board[r][c] != '') continue;
+
+            if (squares[r * 3 + c] == 0) squares[r * 3 + c] = 1;
+
+            for (let three of threes) {
+
+                let i = r * 3 + c;
+
+                if (three.includes(i)) {
+
+                    let counts = countMarks(three);
+
+                    if (counts['ai'] == 2 && counts['empty'] == 1) squares[i] += 100;
+                    if (counts['player'] == 2 && counts['empty'] == 1) squares[i] += 50;
+                    if (counts['ai'] == 1 && counts['empty'] == 2) squares[i] += 10;
+                    if (counts['player'] == 1 && counts['empty'] == 2) squares[i] += 5;
+                }
+            }
+        }
+    }
+
+    let maxIndexes = [];
+    let maxValue = Math.max(...squares); 
+
+    squares.forEach((val, i) => {
+        if (val == maxValue) maxIndexes.push(i);
+    });
+    
+    let i = maxIndexes[Math.trunc(Math.random() * maxIndexes.length)];
+    let move = [Math.trunc(i / 3), i % 3];
+
+    return move;
+}
+
+const expertAI = (board, mark) => {
+
+    // let timeLimit = 500;
+    // let startTime = Date.now();
+    // let move = mcts(board, mark, startTime, timeLimit);
+
+    let [move, _] = minimax(board, -Infinity, Infinity, true);
+
+    return move;
 }
 
 const minimax = (board, alpha, beta, maximizingPlayer) => {
@@ -267,17 +366,23 @@ const aiMove = () => {
 
     let move;
     let ai = player == 'x' ? 'o' : 'x';
+    let timeLimit = nFreeSquares(board) == 9 ? 0 : 200;
+    let startTime = Date.now();
 
     switch (level) {
         case 1:
-            move = randomAI(board);
+            move = basicAI(board, ai);
             break;
         case 2:
-            move = heuristicAI(board, ai);
+            move = advancedAI(board, ai);
             break;
         case 3:
-            [move, _] = minimax(board, -Infinity, Infinity, true);
+            move = expertAI(board, ai);
     }
+
+    // move = moves1.shift(); //
+
+    do {} while (!(Date.now() - startTime >= timeLimit));
 
     let squares = document.querySelectorAll('.square');
     let square = squares[[move[0] * 3 + move[1]]];
@@ -287,14 +392,17 @@ const aiMove = () => {
 
     let image = ai == 'x' ? 'images/marks/x.svg' : 'images/marks/o.svg';
 
-    square.firstChild.src = image;
-    square.firstChild.classList.add('filled');
+    square.querySelector('.regular').src = image;
+    square.classList.add('filled');
 
     placeMark(board, move[0], move[1], ai);
 
     if (gameEnd(board, ai)) return;
 
-    enableTouch();
+    setTimeout(enableTouch, 200);
+
+    // player = player == 'x' ? 'o' : 'x'; //
+    // setTimeout(aiMove, 500); //
 }
 
 const humanTurn = (e) => {
@@ -302,10 +410,9 @@ const humanTurn = (e) => {
     let square = e.currentTarget
     let squares = document.querySelectorAll('.square');
     let i = [...squares].indexOf(square);
-    let imageEl = square.firstChild;
 
     // if (square.firstChild.innerText != '') return;
-    if (imageEl.classList.contains('filled')) return;
+    if (square.classList.contains('filled')) return;
 
 
     disableTouch();
@@ -317,8 +424,8 @@ const humanTurn = (e) => {
     let image = player == 'x' ? 'images/marks/x.svg' : 'images/marks/o.svg';
 
 
-    imageEl.src = image;
-    imageEl.classList.add('filled');
+    square.querySelector('.regular').src = image;
+    square.classList.add('filled');
 
     placeMark(board, Math.trunc(i / 3), i % 3, player);
 
@@ -331,13 +438,16 @@ const selectLevel = (e) => {
 
     let star = e.currentTarget;
     let levels = document.querySelectorAll('.star');
-    level = [...levels].indexOf(star) + 1;
+    let newLevel = [...levels].indexOf(star) + 1;
+
+    if (newLevel == level) return;
+
+    level = newLevel;
 
     levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
     localStorage.setItem('level-xo', JSON.stringify(level));
 
-    disableTouch();
-    newGame({changeLevel: true});
+    newGame({level: true});
 }
 
 const loadLevel = () => {
@@ -349,132 +459,12 @@ const loadLevel = () => {
     levels.forEach((l, i) => i < level ? l.innerText = '★' : l.innerText = '☆');
 }
 
-const setHeaderColors = (mark) => {
-
-    if (mark == 'x') {
-        document.documentElement.style.setProperty('--color1', getComputedStyle(document.documentElement).getPropertyValue('--blue'));
-        document.documentElement.style.setProperty('--color2', getComputedStyle(document.documentElement).getPropertyValue('--red'));
-    } else {
-        document.documentElement.style.setProperty('--color1', getComputedStyle(document.documentElement).getPropertyValue('--red'));
-        document.documentElement.style.setProperty('--color2', getComputedStyle(document.documentElement).getPropertyValue('--blue'));
-    }
-}
-
-const showChoice = ({initial = false} = {}) => {
-
-    setTimeout(() => {
-        document.querySelector(".choice").style.opacity = 1;
-    }, 50);
-
-    if (!initial) {
-        setTimeout(showBoard, 1500); 
-        return;
-    };
-
-    xTimeout = setTimeout(() => {
-        document.querySelector(".x").classList.add("zoom");
-    }, 1000 + 50);
-
-    oTimeout = setTimeout(() => {
-        document.querySelector(".o").classList.add("zoom");
-    }, 1000 + 700 + 50);    
-}
-
-const markChoice = (e) => {
-
-    let el = e.currentTarget;
-    let mark = el.classList.contains('x') ? 'x' : 'o'
-    player = mark;
-
-    disableTouchChoice();
-    clearTimeout(xTimeout);
-    clearTimeout(oTimeout);
-
-    document.querySelector('.x').classList.remove("zoom");
-    document.querySelector('.o').classList.remove("zoom");
-
-    localStorage.setItem('mark', mark);
-    setHeaderColors(mark);
-    
-    setTimeout(() => {
-        el.classList.add("zoom");
-    }, 50);
-
-    showBoard(el);
-}
-
-const showBoard = (el = undefined) => {
-
-    setTimeout(() => {
-        document.querySelector(".choice").style.opacity = 0;
-    }, 500);
-
-    setTimeout(() => {
-
-        if (el) el.classList.remove("zoom");
-
-        document.querySelector(".choice").style.display = "none";
-        document.querySelector("h1").style.display = "block";
-        document.querySelector(".level").style.display = "flex";
-        document.querySelector(".board").style.display = "grid";
-        document.querySelector("#designed").style.display = "block";    
-
-        setTimeout(() => {
-            document.querySelector("h1").style.opacity = 1;
-            document.querySelector(".level").style.opacity = 1;
-            document.querySelector(".board").style.opacity = 1;
-            document.querySelector("#designed").style.opacity = 1;
-
-        }, 500);
-
-        setTimeout(() => {
-            enableTouch();
-            enableLevels();
-        }, 500 + 500);
-
-    }, 1000 + 500);
-}
-
-const setMarks = () => {
-
-    if (localStorage.mark) {
-        player = localStorage.getItem('mark');
-        setHeaderColors(player);
-        showChoice();
-        setTimeout(enableTouchChoice, 0);
-    } else {
-        showChoice({initial: true});
-        setTimeout(enableTouchChoice, 250);
-    }
-}
-
 const disableTapZoom = () => {
 
     const preventDefault = (e) => e.preventDefault();
-    const event = touchScreen() ? 'touchstart' : 'mousedown';
 
-    document.body.addEventListener(event, preventDefault, {passive: false});
-}
-
-const enableTouchChoice = () => {
-
-    document.querySelectorAll('.x, .o').forEach((mark) => {
-
-        let event = touchScreen() ? 'touchstart' : 'mousedown';
-
-        mark.addEventListener(event, markChoice);
-
-    });
-}
-
-const disableTouchChoice = () => {
-
-    document.querySelectorAll('.x, .o').forEach((mark) => {
-
-        let event = touchScreen() ? 'touchstart' : 'mousedown';
-
-        mark.removeEventListener(event, markChoice);
-    });
+    document.body.addEventListener('touchstart', preventDefault, {passive: false});
+    document.body.addEventListener('mousedown', preventDefault, {passive: false});
 }
 
 const enableTouch = () => {
@@ -483,9 +473,8 @@ const enableTouch = () => {
 
     for (let square of squares) {
 
-        let event = touchScreen() ? 'touchstart' : 'mousedown';
-
-        square.addEventListener(event, humanTurn);
+        square.addEventListener('touchstart', humanTurn);
+        square.addEventListener('mousedown', humanTurn);
     }
 }
 
@@ -495,9 +484,8 @@ const disableTouch = () => {
 
     for (let square of squares) {
 
-        let event = touchScreen() ? 'touchstart' : 'mousedown';
-
-        square.removeEventListener(event, humanTurn);
+        square.removeEventListener('touchstart', humanTurn);
+        square.removeEventListener('mousedown', humanTurn);
     }
 }
 
@@ -507,25 +495,24 @@ const enableLevels = () => {
 
     for (let star of stars) {
 
-        let event = touchScreen() ? 'touchstart' : 'mousedown';
-
-        star.addEventListener(event, selectLevel);
+        star.addEventListener('touchstart', selectLevel);
+        star.addEventListener('mousedown', selectLevel);
     }
 }
 
 const init = () => {
 
     setBoardSize();
-    loadImages();
-    loadLevel();
-
-    setMarks();
-
+    preloadImages();
     initBoard();
-    // showBoard();
+    loadLevel();
+    showBoard();
     disableTapZoom();
-    // enableTouch();
-    // enableLevels();
+    enableTouch();
+    enableLevels();
+
+    // player = 'o'; //
+    // setTimeout(aiMove, 2000); //
 }
 
-window.onload = () => document.fonts.ready.then(init());
+window.onload = () => document.fonts.ready.then(init);

@@ -3,43 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Tic Tac Toe</title>
-    <meta name="description" content="">
-    <meta name="keywords" content="">
+    <meta name="description" content="Be the first to place three of your marks in a row — horizontally, vertically, or diagonally">
+    <meta name="keywords" content="nought,cross,x,o,3,board,game,play,online,mark,symbol,square,three,row,line,logic,tactic,strategy,brain,mind,school,kids,family">
     <meta name="author" content="Alexander Berson">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="google" content="notranslate">
     
     <link rel="stylesheet" type="text/css" href="css/style.css">
+    <!-- <script src="js/mcts.js" defer></script> -->
+    <!-- <script src="js/preview.js" defer></script> -->
+
     <script src="js/tictactoe.js" defer></script>
 </head>
-<body>
+<body class="noselect">
     <div id="outer">
         <div id="middle">
             <div id ="inner">
                 <header>
-                    <h1><span>T</span><span>i</span><span>c</span> <span>T</span><span>a</span><span>c</span> <span>T</span><span>o</span><span>e</span></h1>
+                    <!-- <h1><span>Tic Tac Toe</span></h1> -->
+                    <h1><span>Tic</span> <span>Tac</span> <span>Toe</span></h1>
+                    <!-- <h1><span>T</span><span>i</span><span>c</span> <span>T</span><span>a</span><span>c</span> <span>T</span><span>o</span><span>e</span></h1> -->
                 </header>
                 <main>
                     <div class="level"><div class="star"></div><div class="star"></div><div class="star"></div></div>
                     <div class="board">                       
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                        <div class="square"><img src=""></div>
-                    </div>
-                    <div class="choice">
-                        <img class="x" src="images/marks/x.svg">
-                        <img class="o" src="images/marks/o.svg">
-                    </div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
                 </main>
                 <footer>
-                    <div id="designed">Designed by Alexander Berson</div>
+                    <div id="designed"><span>Designed by</span> <span>Alexander Berson</span></div>
+                    <!-- <div id="designed"><span>Designed</span> <span>by</span> <span>Alexander</span> <span>Berson</span></div> -->
+                    <!-- <div id="designed">Designed by Alexander Berson</div> -->
+                    <!-- <div id="designed"><span>D</span><span>e</span><span>s</span><span>i</span><span>g</span><span>n</span><span>e</span><span>d</span> <span>b</span><span>y</span> <span>A</span><span>l</span><span>e</span><span>x</span><span>a</span><span>n</span><span>d</span><span>e</span><span>r</span> <span>B</span><span>e</span><span>r</span><span>s</span><span>o</span><span>n</span></div> -->
                 </footer>
             </div>
         </div>
