@@ -4,16 +4,31 @@
     <meta charset="UTF-8">
     <title>Tic Tac Toe</title>
     <meta name="description" content="Be the first to place three of your marks in a row — horizontally, vertically, or diagonally">
-    <meta name="keywords" content="nought,cross,x,o,3,board,game,play,online,mark,symbol,square,three,row,line,logic,tactic,strategy,brain,mind,school,kids,family">
+    <meta name="keywords" content="board,game,play,online,x,o,nought,cross,row,line,logic,tactic,strategy,brain,mind,school,kids,family">
     <meta name="author" content="Alexander Berson">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
     <meta name="google" content="notranslate">
+    <meta name="apple-itunes-app" content="app-id=6502622949"> 
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tic Tac Toe">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="shortcut icon" href="images/favicon.ico">
+    <link rel="mask-icon" href="images/safari-pinned-tab.svg" color="#004b93">
+    <link rel="manifest" href="manifest.json">
     
     <link rel="stylesheet" type="text/css" href="css/style.css">
-    <!-- <script src="js/mcts.js" defer></script> -->
+
     <!-- <script src="js/preview.js" defer></script> -->
 
+    <script src="js/ai.js" defer></script>
+    <script src="js/ui.js" defer></script>
     <script src="js/tictactoe.js" defer></script>
 </head>
 <body class="noselect">
@@ -21,28 +36,23 @@
         <div id="middle">
             <div id ="inner">
                 <header>
-                    <!-- <h1><span>Tic Tac Toe</span></h1> -->
                     <h1><span>Tic</span> <span>Tac</span> <span>Toe</span></h1>
-                    <!-- <h1><span>T</span><span>i</span><span>c</span> <span>T</span><span>a</span><span>c</span> <span>T</span><span>o</span><span>e</span></h1> -->
                 </header>
                 <main>
-                    <div class="level"><div class="star"></div><div class="star"></div><div class="star"></div></div>
-                    <div class="board">                       
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
-                        <div class="square"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                    <div class="level"><div class="star" id="l1"></div><div class="star" id="l2"></div><div class="star" id="l3"></div></div>
+                    <div class="board"> 
+                        <div class="square" id="s1"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s2"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s3"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s4"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s5"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s6"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s7"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s8"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
+                        <div class="square" id="s9"><div class="mark"><img class="bold" src=""><img class="regular" src=""></div></div>
                 </main>
                 <footer>
                     <div id="designed"><span>Designed by</span> <span>Alexander Berson</span></div>
-                    <!-- <div id="designed"><span>Designed</span> <span>by</span> <span>Alexander</span> <span>Berson</span></div> -->
-                    <!-- <div id="designed">Designed by Alexander Berson</div> -->
-                    <!-- <div id="designed"><span>D</span><span>e</span><span>s</span><span>i</span><span>g</span><span>n</span><span>e</span><span>d</span> <span>b</span><span>y</span> <span>A</span><span>l</span><span>e</span><span>x</span><span>a</span><span>n</span><span>d</span><span>e</span><span>r</span> <span>B</span><span>e</span><span>r</span><span>s</span><span>o</span><span>n</span></div> -->
                 </footer>
             </div>
         </div>
