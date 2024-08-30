@@ -48,7 +48,6 @@ const clearBoard = () => {
             image.classList.remove('reset', 'x', 'o');
 
         }, {once: true})
-
     });
 }
 
@@ -82,8 +81,6 @@ const endGame = (player) => {
 
         }, {once: true});
     }
-
-    // setTimeout(newGame, 1000); // 
 }
 
 const loadLevel = () => {
@@ -103,27 +100,25 @@ const selectLevel = (e) => {
 
     if (newLevel == level) return;
 
+    disableTouch();
+
     level = newLevel;
 
     levels.forEach((levelEl, i) => levelEl.innerText = i < level ? '★' : '☆');
     localStorage.setItem('level-xo', JSON.stringify(level));
 
-    newGame({changeLevel: true});
+    freeSquares(board).length == size ** 2 ? enableTouch() : newGame({changeLevel: true});
 }
 
-const enableLevels = () => {
+const enableTouch = () => {
 
     let stars = document.querySelectorAll('.star');
+    let squares = document.querySelectorAll('.square');
 
     for (let star of stars) {
         star.addEventListener('touchstart', selectLevel);
         star.addEventListener('mousedown', selectLevel);
     }
-}
-
-const enableTouch = () => {
-
-    let squares = document.querySelectorAll('.square');
 
     for (let square of squares) {
         square.addEventListener('touchstart', humanTurn);
@@ -133,7 +128,13 @@ const enableTouch = () => {
 
 const disableTouch = () => {
 
+    let stars = document.querySelectorAll('.star');
     let squares = document.querySelectorAll('.square');
+
+    for (let star of stars) {
+        star.removeEventListener('touchstart', selectLevel);
+        star.removeEventListener('mousedown', selectLevel);
+    }
 
     for (let square of squares) {
         square.removeEventListener('touchstart', humanTurn);

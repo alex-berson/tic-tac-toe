@@ -56,9 +56,9 @@ const advancedAI = (board) => {
     let squares = Array(size ** 2).fill(0);
     let lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
-    for(let r = 0; lessThan3(r); r++) { 
+    for (let r = 0; lessThan3(r); r++) { 
 
-        for(let c = 0; lessThan3(c); c++) {
+        for (let c = 0; lessThan3(c); c++) {
 
             if (board[r][c] != '') continue;
 

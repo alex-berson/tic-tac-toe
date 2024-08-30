@@ -58,20 +58,12 @@ const win = (board, player) => {
 
 const newGame = ({changeLevel = false} = {}) => {
 
-    if (!changeLevel || win(board, 'x') || win(board, 'o')) human = human == 'x' ? 'o' : 'x';
+    if (!changeLevel) human = human == 'x' ? 'o' : 'x';
 
     clearBoard();
     initBoard();
 
     human == 'x' ? setTimeout(enableTouch, 600) : setTimeout(aiTurn, 600);
-
-    // setTimeout(() => { //
-    //     human == 'x' ? enableTouch() : aiTurn(); //
-    //     if (moves5.length == 0) return; //
-    //     moves = moves5.shift(); //
-    //     human = 'o'; //
-    //     setTimeout(aiTurn, 300); //
-    // }, 600); //
 }
 
 const aiTurn = async () => {
@@ -85,17 +77,12 @@ const aiTurn = async () => {
     let timeLimit = freeSquares(board).length == size ** 2 ? 0 : 200;
     let delay = timeLimit - (Date.now() - startTime);
 
-    // [r, c] = moves.shift(); //
-
     await sleep(delay);
 
     placeMark(r, c, ai);
     updateBoard(board, r, c, ai);
 
     gameOver(board, ai) ? setTimeout(endGame, 200, ai) : setTimeout(enableTouch, 200);
-
-    // human = human == 'x' ? 'o' : 'x'; //
-    // setTimeout(aiTurn, 500); //
 }
 
 const humanTurn = (e) => {
@@ -118,8 +105,7 @@ const registerServiceWorker = () => {
 }
 
 const init = () => {
-
-    // registerServiceWorker();
+    registerServiceWorker();
     setBoardSize();
     preloadImages();
     initBoard();
@@ -127,11 +113,6 @@ const init = () => {
     showBoard();
     disableTapZoom();
     enableTouch();
-    enableLevels();
-
-    // moves = moves5.shift(); //
-    // human = 'o'; //
-    // setTimeout(aiTurn, 2000); //
 }
 
 window.onload = () => document.fonts.ready.then(init);
